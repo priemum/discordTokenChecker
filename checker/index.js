@@ -1,10 +1,11 @@
-const request = require('request');
-const chalk = require('chalk');
-const fs = require('fs');
-
-var invalid = [];
-var verified = [];
-var unverified = [];
+const request = require('request'),
+chalk = require('chalk'),
+    {appendFile} = require('fs');
+data = {
+    invalid: [],
+    verified: [],
+    unverified: []
+};
 
 class Checker {
     constructor(token) {
@@ -19,49 +20,59 @@ class Checker {
             }
         }, (error, response, body) => {
             if (!body) return;
-            var json = JSON.parse(body);
+            let json = JSON.parse(body);
             if (!json.id) {
-                invalid.push(this.token);
-                fs.appendFile('utils/invalid.txt', this.token + "\n", (err) => {
+                data.invalid.push(this.token);
+                appendFile('utils/invalid.txt', this.token + "\n", (err) => {
                     if (err) throw err;
                 });
             } else if (!json.verified) {
-                unverified.push(this.token);
-                fs.appendFile('utils/unverified.txt', this.token + "\n", (err) => {
+                data.unverified.push(this.token);
+                appendFile('utils/unverified.txt', this.token + "\n", (err) => {
                     if (err) throw err;
                 });
             } else {
-                verified.push(this.token);
-                fs.appendFile('utils/verified.txt', this.token + "\n", (err) => {
+                data.verified.push(this.token);
+                appendFile('utils/verified.txt', this.token + "\n", (err) => {
                     if (err) throw err;
                 });
             }
             console.clear();
-            var text = "";
-            text += chalk.green(`Verified: ${verified.length}`);
+            let text = "";
+            text += chalk.green(`Verified: ${data.verified.length}`);
             text += chalk.blue(" | ");
-            text += chalk.yellow(`Unverified: ${unverified.length}`);
+            text += chalk.yellow(`Unverified: ${data.unverified.length}`);
             text += chalk.blue(" | ");
-            text += chalk.red(`Invalid: ${invalid.length}`);
-            var title = `Verified: ${verified.length} | Unverified: ${unverified.length} | Invalid: ${invalid.length}`;
+            text += chalk.red(`Invalid: ${data.invalid.length}`);
+            let title = `[${chalk.green('Verified')}]: ${data.verified.length} | [${chalk.yellow('Unverified')}]: ${data.unverified.length} | [${chalk.red('Invalid')}]: ${data.invalid.length}`;
             log(text, title);
         });
     }
 }
 
+/**
+ * @param text
+ * @param title
+ */
 function log(text, title) {
-    if (process.platform == 'win32') {
-        process.title = title;
-    } else {
+    if (process.platform === 'win64') {
         process.stdout.write('\x1b]2;' + title + '\x1b\x5c');
+    } else {
+        process.title = title;
     }
     console.log(text);
 }
 
+/**
+ * @type {{check: Index.check}}
+ */
 const Index = {
     check: function(token) {
         new Checker(token).check();
     }
 };
 
+/**
+ * @type {{check: Index.check}}
+ */
 module.exports = Index;

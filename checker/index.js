@@ -75,4 +75,4 @@ const Index = {
 /**
  * @type {{check: Index.check}}
  */
-module.exports = Index;
+module.exports = Index; 
